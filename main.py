@@ -1,4 +1,5 @@
 import pickle
+import pyperclip
 import tkinter as tk
 
 editMode = 0
@@ -13,22 +14,24 @@ with open("data", 'rb') as file:
 	buttonTitles, buttonData = pickle.load(file)
 
 # Clear Variables
-buttonTitles = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
-buttonData = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+# buttonTitles = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
+# buttonData = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]
 
 def save_data():
 	with open("data", 'wb') as file:
 		pickle.dump([buttonTitles, buttonData], file)
 
 root.title("Clipboard Board")
-root.geometry("570x300")
+root.geometry("562x256")
 # root.iconbitmap("lib/icon.ico")
 
-frame1 = tk.Frame(root)
-frame2 = tk.Frame(root)
-frame3 = tk.Frame(root)
-frame4 = tk.Frame(root)
-bFrame = tk.Frame(root)
+mainwindow = tk.Frame(root); mainwindow.pack(anchor=tk.CENTER)
+
+frame1 = tk.Frame(mainwindow)
+frame2 = tk.Frame(mainwindow)
+frame3 = tk.Frame(mainwindow)
+frame4 = tk.Frame(mainwindow)
+bFrame = tk.Frame(mainwindow)
 
 def changeFrame(framenumber):
 	global currentFrame
@@ -53,8 +56,8 @@ def editClick():
 		editMode = 1
 		editButton.configure(bg="cyan")
 
-editButton = tk.Button(root, text="⚙️", font='Helvetica 14 bold', command=editClick); editButton.grid(row=0, column=0, sticky=tk.W)
-title = tk.Label(root, text="Clipboard Board", font='Helvetica 16 bold'); title.grid(row=0, column=6)
+editButton = tk.Button(mainwindow, text="⚙️", font='Helvetica 13 bold', command=editClick); editButton.grid(row=0, column=0, sticky=tk.W)
+title = tk.Label(mainwindow, text="Clipboard Board", font='Helvetica 16 bold'); title.grid(row=0, column=6)
 bFrame.grid(row=0, column=8, columnspan=4)
 
 
@@ -62,26 +65,53 @@ class createButtons:
 	def __init__(self, frame, number):
 		self.frame = frame
 		self.number = number
-		createCMD = f"self.button = tk.Button({frame}, text='{buttonTitles[(number - 1)]}', font='Helvetica 14 bold', width=11, height=1, command=lambda: createButtons.click({number}))"
+		createCMD = f"self.button = tk.Button({frame}, text='{buttonTitles[(number - 1)]}', font='Helvetica 14 bold', width=11, height=1, command=lambda: createButtons.click({number}), relief='solid', borderwidth=1)"
 		exec(createCMD)
+
 
 
 	@staticmethod
 	def editEntry(buttonNumber):
 		editBox = tk.Tk()
 		editBox.title(f"Edit Button {buttonNumber}")
-		editBox.geometry("300x300")
+		editBox.geometry("300x400")
 
-		titleLabel = tk.Label(editBox, text=f"Edit Title", font='Helvetica 10 bold'); titleLabel.pack(pady=3)
-		titleBox = tk.Entry(editBox, width=20); titleBox.pack(pady=3)
-		dataLabel = tk.Label(editBox, text="Edit Data", font='Helvetica 10 bold'); dataLabel.pack(pady=3)
-		dataBox = tk.Text(editBox, height=10, width=30); dataBox.pack(pady=3)
+		titleLabel = tk.Label(editBox, text=f"Edit Title", font='Helvetica 10 bold'); titleLabel.grid(row=0, column=0, columnspan=2)
+		titleBox = tk.Entry(editBox, width=20); titleBox.grid(row=1, column=0, columnspan=2)
+		titleBox.insert(0, buttonTitles[buttonNumber - 1])
+		dataLabel = tk.Label(editBox, text="Edit Data", font='Helvetica 10 bold'); dataLabel.grid(row=2, column=0, columnspan=2)
+		dataBox = tk.Text(editBox, height=10, width=40); dataBox.grid(row=3, column=0, columnspan=2, padx=20)
+		dataBox.insert(tk.INSERT, buttonData[buttonNumber - 1])
+
+		def saveEntry(buttonNumber):
+			global buttonTitles
+			entry = titleBox.get()
+			buttonTitles[buttonNumber - 1] = entry
+			exec(f"button{buttonNumber}.button.configure(text='{entry}')")
+
+			global buttonData
+			entry = dataBox.get("1.0", "end-1c")
+			buttonData[buttonNumber - 1] = entry
+			save_data()
+			# Dosnt work
+
+			editBox.destroy()
+			editClick()
+
+		def cancelEntry():
+			editClick()
+			editBox.destroy()
+
+
+		saveButton = tk.Button(editBox, text="Save", font='Helvetica 14 bold', command=lambda:saveEntry(buttonNumber), padx=10); saveButton.grid(row=5, column=0, sticky=tk.E)
+		cancelButton = tk.Button(editBox, text="Close", font='Helvetica 14 bold', command=cancelEntry()); cancelButton.grid(row=5, column=1, sticky=tk.W)
 
 		editBox.mainloop()
 
 	@staticmethod
 	def copyToClipboard(buttonNumber):
-		print("Copied to clipboard")
+		pyperclip.copy(buttonData[buttonNumber - 1])
+		print(buttonData[buttonNumber - 1])
 
 
 
@@ -123,11 +153,7 @@ for i in range (0, 4):
 			count += 1
 
 
-
-
-
-
-
 frame1.grid(row=2, column=0, columnspan=11)
+
 frame1Button.configure(bg="red")
-root.mainloop()
+mainwindow.mainloop()
