@@ -99,12 +99,12 @@ class createButtons:
 			editClick()
 
 		def cancelEntry():
-			editClick()
 			editBox.destroy()
+			editClick()
 
 
 		saveButton = tk.Button(editBox, text="Save", font='Helvetica 14 bold', command=lambda:saveEntry(buttonNumber), padx=10); saveButton.grid(row=5, column=0, sticky=tk.E)
-		cancelButton = tk.Button(editBox, text="Close", font='Helvetica 14 bold', command=cancelEntry()); cancelButton.grid(row=5, column=1, sticky=tk.W)
+		cancelButton = tk.Button(editBox, text="Close", font='Helvetica 14 bold', command=lambda:cancelEntry()); cancelButton.grid(row=5, column=1, sticky=tk.W)
 
 		editBox.mainloop()
 
