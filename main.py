@@ -1,6 +1,8 @@
 import os
+import time
 import pickle
 import pyperclip
+import threading
 import tkinter as tk
 
 editMode = 0
@@ -109,11 +111,22 @@ class createButtons:
 
 	@staticmethod
 	def click(number):
-		global editMode
-		if editMode == 1:
-			createButtons.editEntry(number)
-		elif editMode == 0:
-			createButtons.copyToClipboard(number)
+		def clickCode():
+			global editMode
+			if editMode == 1:
+				createButtons.editEntry(number)
+			elif editMode == 0:
+				createButtons.copyToClipboard(number)
+		
+		def colourChange():
+			exec(f"button{number}.button.configure(bg='red')")
+			time.sleep(0.3)
+			exec(f"button{number}.button.configure(bg='SystemButtonFace')")
+
+		thread1 = threading.Thread(target=clickCode)
+		thread2 = threading.Thread(target=colourChange)
+		thread1.start()
+		thread2.start()
 
 for i in range(1, 25):
 	command1 = f"button{i} = createButtons('frame1', {i})"
